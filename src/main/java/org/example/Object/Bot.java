@@ -6,11 +6,11 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.example.Event.CreateRequest;
 
 public class Bot {
 
     private String TOKEN;
-    private long CATEGORY_ID;
 
     private JDA jda;
 
@@ -19,7 +19,6 @@ public class Bot {
                 .load();
 
         TOKEN = dotenv.get("TOKEN");
-        CATEGORY_ID = Long.parseLong(dotenv.get("CATEGORY_ID"));
     }
 
     public String getTOKEN() {
@@ -30,9 +29,6 @@ public class Bot {
         return jda;
     }
 
-    public long getCATEGORY_ID() {
-        return CATEGORY_ID;
-    }
 
     public void loadJDA() {
         jda = JDABuilder.createDefault(this.TOKEN)
@@ -54,6 +50,9 @@ public class Bot {
                         CacheFlag.SCHEDULED_EVENTS
                 ).setActivity(
                         Activity.playing("Supporting for all users"))
+                .addEventListeners(
+                        new CreateRequest()
+                )
                 .build();
     }
 }

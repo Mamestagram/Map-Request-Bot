@@ -64,7 +64,6 @@ public class CreateRequest extends ListenerAdapter {
             e.reply("Request has been created!").setEphemeral(true).queue();
         }
         else if (e.getComponentId().equals("btn_deranked_map")) {
-            TextInput textInput = org.example.Object.Modal.createTextInput("map_name", "Map name", "Enter the map name", true, TextInputStyle.)
             e.reply("Request has been created!").setEphemeral(true).queue();
         }
     }

@@ -39,4 +39,22 @@ public abstract class Modal {
                 )
                 .build();
     }
+
+    public  static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestAcceptModal(String custom_id) {
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", false, TextInputStyle.PARAGRAPH);
+
+        return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Request accept")
+                .addActionRows(
+                        ActionRow.of(comment)
+                ).build();
+    }
+
+    public  static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestRejectModal(String custom_id) {
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", false, TextInputStyle.PARAGRAPH);
+
+        return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Request reject")
+                .addActionRows(
+                        ActionRow.of(comment)
+                ).build();
+    }
 }

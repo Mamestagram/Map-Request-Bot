@@ -135,7 +135,6 @@ public class NominateRequest extends ListenerAdapter {
                             Button.primary("btn_unranked_map", "Map")
                     ).setEphemeral(true).queue();
         }
-        // WIP
         else if (e.getComponentId().equals("btn_ranked_mapset")) {
             e.replyModal(Modal.getMapRequestModal("modal_ranked_mapset")).queue();
         }
@@ -147,6 +146,15 @@ public class NominateRequest extends ListenerAdapter {
         }
         else if (e.getComponentId().equals("btn_unranked_map")) {
             e.replyModal(Modal.getUnRankMapRequestModal("modal_unranked_map")).queue();
+        }
+        else if(e.getComponentId().equals("btn_map_accept")) {
+            e.reply("Your request has been accepted!").queue();
+        }
+        else if(e.getComponentId().equals("btn_map_reject")) {
+            e.reply("Your request has been rejected!").queue();
+        }
+        else {
+            e.reply("An unexpected error has occurred. Please try again.").queue();
         }
     }
 

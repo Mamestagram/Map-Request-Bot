@@ -28,4 +28,15 @@ public abstract class Embed {
 
         return embed;
     }
+
+    public static EmbedBuilder getMapRequestError() {
+
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.setTitle("**Error**");
+        embed.addField(":warning: Error", "An unexpected error has occurred. Please send your request again.", false);
+        embed.setImage("https://cdn.discordapp.com/attachments/944984741826932767/1238116305224204309/image.png");
+        embed.setColor(Color.MAGENTA);
+
+        return embed;
+    }
 }

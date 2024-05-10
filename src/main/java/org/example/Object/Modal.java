@@ -17,7 +17,7 @@ public abstract class Modal {
 
     public static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestModal(String custom_id) {
 
-        TextInput map_id = org.example.Object.Modal.createTextInput("set_id", "Beatmap URL", "eg: https://osu.ppy.sh/beatmapsets/1#osu/1", true, TextInputStyle.SHORT);
+        TextInput map_id = org.example.Object.Modal.createTextInput("bmap_url", "Beatmap URL", "eg: https://osu.ppy.sh/beatmapsets/1#osu/1", true, TextInputStyle.SHORT);
         TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", true, TextInputStyle.PARAGRAPH);
 
         return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Beatmap Ranked Request")
@@ -29,8 +29,8 @@ public abstract class Modal {
 
     public static net.dv8tion.jda.api.interactions.modals.Modal getUnRankMapRequestModal(String custom_id) {
 
-        TextInput map_id = org.example.Object.Modal.createTextInput("set_id", "Beatmap URL", "eg: https://osu.ppy.sh/beatmapsets/1#osu/1", true, TextInputStyle.SHORT);
-        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", true, TextInputStyle.PARAGRAPH);
+        TextInput map_id = org.example.Object.Modal.createTextInput("bmap_url", "Beatmap URL", "eg: https://osu.ppy.sh/beatmapsets/1#osu/1", true, TextInputStyle.SHORT);
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Reason", "Enter the reason", true, TextInputStyle.PARAGRAPH);
 
         return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Beatmap Unranked Request")
                 .addActionRows(

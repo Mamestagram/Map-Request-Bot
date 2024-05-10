@@ -15,6 +15,7 @@ import org.example.Object.Setting;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -85,22 +86,52 @@ public class CreateRequest extends ListenerAdapter {
     public void onModalInteraction(ModalInteractionEvent e) {
         if(e.getModalId().equals("modal_ranked_mapset") || e.getModalId().equals("modal_unranked_mapset") || e.getModalId().equals("modal_ranked_map") || e.getModalId().equals("modal_unranked_map")) {
 
-            String set_id = null, mode = null, id = null;
+            int set_id = 1, id = 1;
+            String mode = "osu";
             String link = e.getValue("bmap_url").getAsString();
+
             Matcher matcher = getRegexMap(link);
+            Bot bot = Main.bot;
             Database db = Main.database;
+            Setting setting = Main.setting;
+
+            PreparedStatement ps;
+            ResultSet result;
+
+            JDA jda = bot.getJda();
 
             //送信の処理を書く
             if (matcher.find()) {
                 try {
                     Connection connection = db.getConnection(db.getDB_HOST(), db.getDB_NAME(), db.getDB_USER(), db.getDB_PASSWORD());
-                    set_id = matcher.group(1);
-                    mode = matcher.group(2);
-                    id = matcher.group(3);
 
+                    set_id = Integer.parseInt(matcher.group(1));
+                    mode = matcher.group(2);
+                    id = Integer.parseInt(matcher.group(3));
+
+                    if(set_id < 0 || id < 0) {
+                        e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect setID or ID format").build()).setEphemeral(true).queue();
+                        return;
+                    }
+
+                    ps = connection.prepareStatement("SELECT id FROM maps where set_id = ? limit 1");
+                    ps.setInt(1, set_id);
+                    result = ps.executeQuery();
+                    if (result.next()) {
+                        if (e.getModalId().contains("mapset")) {
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + ","  + mode).queue();
+                        } else {
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + id + "," + mode).queue();
+                        }
+                        e.replyEmbeds(Embed.getMapRequestCompleteMessage("Your request has been sent to the nominator.").build()).setEphemeral(true).queue();
+                    } else {
+                        e.replyEmbeds(Embed.getMapRequestErrorMessage("The entered map does not exist in the database!").build()).setEphemeral(true).queue();
+                    }
                 } catch (SQLException ex) {
-                    e.replyEmbeds(Embed.getMapRequestError().build()).setEphemeral(true).queue();
+                    e.replyEmbeds(Embed.getMapRequestErrorMessage("An unexpected error has occurred. Please send your request again.\n\nError: SQLException").build()).setEphemeral(true).queue();
                 }
+            } else {
+                e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect URL format").build()).setEphemeral(true).queue();
             }
         }
     }

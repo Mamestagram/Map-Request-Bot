@@ -29,11 +29,21 @@ public abstract class Embed {
         return embed;
     }
 
-    public static EmbedBuilder getMapRequestError() {
+    public static EmbedBuilder getMapRequestCompleteMessage(String message) {
 
         EmbedBuilder embed = new EmbedBuilder();
-        embed.setTitle("**Error**");
-        embed.addField(":warning: Error", "An unexpected error has occurred. Please send your request again.", false);
+        embed.addField(":white_check_mark: Complete", message, false);
+        embed.setImage("https://cdn.discordapp.com/attachments/944984741826932767/1238116305224204309/image.png");
+        embed.setColor(Color.MAGENTA);
+
+        return embed;
+    }
+
+
+    public static EmbedBuilder getMapRequestErrorMessage(String error) {
+
+        EmbedBuilder embed = new EmbedBuilder();
+        embed.addField(":warning: Error", error, false);
         embed.setImage("https://cdn.discordapp.com/attachments/944984741826932767/1238116305224204309/image.png");
         embed.setColor(Color.MAGENTA);
 

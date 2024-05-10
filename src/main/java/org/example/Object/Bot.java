@@ -6,7 +6,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
-import org.example.Event.CreateRequest;
+import org.example.Event.NominateRequest;
 
 public class Bot {
 
@@ -51,7 +51,7 @@ public class Bot {
                 ).setActivity(
                         Activity.playing("Supporting for all users"))
                 .addEventListeners(
-                        new CreateRequest()
+                        new NominateRequest()
                 )
                 .build();
     }

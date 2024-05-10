@@ -49,4 +49,15 @@ public abstract class Embed {
 
         return embed;
     }
+
+    public static EmbedBuilder getMapRequestReceivedMessage(int set_id, String comment, String filename, String status, String type, String mode) {
+
+            EmbedBuilder embed = new EmbedBuilder();
+            embed.addField( "**:warning: ["+ status + "] " + mode + " " + type + " request received!!**", filename, false);
+            embed.addField("**Comment**", "```" + comment + "```", false);
+            embed.setImage("https://assets.ppy.sh/beatmaps/" + set_id + "/covers/cover.jpg?");
+            embed.setColor(Color.MAGENTA);
+
+            return embed;
+    }
 }

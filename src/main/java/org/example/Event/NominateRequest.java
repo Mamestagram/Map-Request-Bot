@@ -1,6 +1,7 @@
 package org.example.Event;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -20,7 +21,7 @@ import java.sql.SQLException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CreateRequest extends ListenerAdapter {
+public class NominateRequest extends ListenerAdapter {
 
     private static Matcher getRegexMap(String url) {
 
@@ -34,9 +35,76 @@ public class CreateRequest extends ListenerAdapter {
     public void onMessageReceived(MessageReceivedEvent e) {
 
         Setting setting = Main.setting;
+        Database database = Main.database;
         Bot bot = Main.bot;
 
         JDA jda = bot.getJda();
+
+        if (e.getMessage().getChannel().getIdLong() == setting.getTESTER_CHANNEL_ID()) {
+
+            if (e.getMember().getUser().isBot()) {
+
+                if (e.getMessage().isEphemeral()) {
+                    return;
+                }
+
+                if (!e.getMessage().getEmbeds().isEmpty()) {
+                    return;
+                }
+
+                try {
+
+                    PreparedStatement ps;
+                    ResultSet result;
+                    Connection connection = database.getConnection(database.getDB_HOST(), database.getDB_NAME(), database.getDB_USER(), database.getDB_PASSWORD());
+
+                    String[] args = e.getMessage().getContentRaw().split(",");
+
+                    System.out.println(args.length);
+                    int[] arr = new int[args.length];
+
+                    int count;
+                    String m;
+                    String status;
+                    String type;
+                    String comment;
+
+                    if (args.length == 5) {
+                        count = 1;
+                        m = args[1];
+                        status = args[2];
+                        type = args[3];
+                        comment = args[4];
+                    } else {
+                        count = 2;
+                        m = args[2];
+                        status = args[3];
+                        type = args[4];
+                        comment = args[5];
+                    }
+
+                    for (int i = 0; i < count; i++) {
+                        arr[i] = Integer.parseInt(args[i]);
+                    }
+
+                    ps = connection.prepareStatement("select set_id, artist, title, creator from maps where set_id = ? limit 1");
+                    ps.setInt(1, arr[0]);
+                    result = ps.executeQuery();
+                    if (result.next()) {
+                        String filename = result.getString("artist") + " - " + result.getString("title") + " by " + result.getString("creator");
+                        e.getMessage().createThreadChannel("[" + status  + "] "  + filename)
+                                .queue(thread -> thread.sendMessage( "https://osu.ppy.sh/beatmapsets/" + arr[0] + "#" + m + "/" + arr[1])
+                                        .setActionRow(
+                                                Button.success("btn_map_accept", "Accept"),
+                                                Button.danger("btn_map_reject", "Reject")
+                                        ).queue());
+                        e.getMessage().replyEmbeds(Embed.getMapRequestReceivedMessage(result.getInt("set_id"), comment, filename, status, type, m).build()).queue();
+                    }
+                } catch (SQLException ex) {
+                    System.out.println(ex);
+                }
+            }
+        }
 
         if (e.getMessage().getChannel().getIdLong() == setting.getREQUEST_CHANNEL_ID()) {
             if (e.getMessage().getContentRaw().equals("create-req-msg")) {
@@ -87,7 +155,7 @@ public class CreateRequest extends ListenerAdapter {
         if(e.getModalId().equals("modal_ranked_mapset") || e.getModalId().equals("modal_unranked_mapset") || e.getModalId().equals("modal_ranked_map") || e.getModalId().equals("modal_unranked_map")) {
 
             int set_id = 1, id = 1;
-            String mode = "osu";
+            String type = "osu,mapset";
             String link = e.getValue("bmap_url").getAsString();
 
             Matcher matcher = getRegexMap(link);
@@ -106,9 +174,13 @@ public class CreateRequest extends ListenerAdapter {
                     Connection connection = db.getConnection(db.getDB_HOST(), db.getDB_NAME(), db.getDB_USER(), db.getDB_PASSWORD());
 
                     set_id = Integer.parseInt(matcher.group(1));
-                    mode = matcher.group(2);
                     id = Integer.parseInt(matcher.group(3));
 
+                    if (e.getModalId().contains("unranked")) {
+                        type = matcher.group(2) + ",unranked";
+                    } else {
+                        type = matcher.group(2) + ",ranked";
+                    }
                     if(set_id < 0 || id < 0) {
                         e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect setID or ID format").build()).setEphemeral(true).queue();
                         return;
@@ -118,10 +190,19 @@ public class CreateRequest extends ListenerAdapter {
                     ps.setInt(1, set_id);
                     result = ps.executeQuery();
                     if (result.next()) {
-                        if (e.getModalId().contains("mapset")) {
-                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + ","  + mode).queue();
+
+                        String comment;
+
+                        if(e.getValue("comment").getAsString().equals("")) {
+                                comment = "No comment";
                         } else {
-                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + id + "," + mode).queue();
+                            comment = e.getValue("comment").getAsString();
+                        }
+
+                        if (e.getModalId().contains("mapset")) {
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + ","  + type + ",mapset," + comment).queue();
+                        } else {
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + id + "," + type + ",map," + comment).queue();
                         }
                         e.replyEmbeds(Embed.getMapRequestCompleteMessage("Your request has been sent to the nominator.").build()).setEphemeral(true).queue();
                     } else {
@@ -132,6 +213,15 @@ public class CreateRequest extends ListenerAdapter {
                 }
             } else {
                 e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect URL format").build()).setEphemeral(true).queue();
+            }
+        }
+    }
+
+    @Override
+    public void onChannelCreate(ChannelCreateEvent e) {
+        if (e.getChannelType().isThread()) {
+            if (e.getChannel().asThreadChannel().getOwner().getUser().isBot()) {
+
             }
         }
     }

@@ -18,7 +18,7 @@ public abstract class Modal {
     public static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestModal(String custom_id) {
 
         TextInput map_id = org.example.Object.Modal.createTextInput("bmap_url", "Beatmap URL", "eg: https://osu.ppy.sh/beatmapsets/1#osu/1", true, TextInputStyle.SHORT);
-        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", true, TextInputStyle.PARAGRAPH);
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", false, TextInputStyle.PARAGRAPH);
 
         return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Beatmap Ranked Request")
                 .addActionRows(

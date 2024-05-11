@@ -1,6 +1,7 @@
 package org.example;
 
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
 
@@ -50,12 +51,13 @@ public abstract class Embed {
         return embed;
     }
 
-    public static EmbedBuilder getMapRequestReceivedMessage(int set_id, String comment, String filename, String status, String type, String mode) {
+    public static EmbedBuilder getMapRequestReceivedMessage(User user, int set_id, String comment, String filename, String status, String type, String mode) {
 
             EmbedBuilder embed = new EmbedBuilder();
             embed.setTitle( "**["+ status + "] " + mode + " " + type + " request received!!**");
             embed.addField("**Filename**", filename, false);
-            embed.addField("**Comment**", "```" + comment + "```", false);
+            embed.addField("**Comment**", "```" + comment + "```", true);
+            embed.addField("**Request**", user.getAsMention(), true);
             embed.setImage("https://assets.ppy.sh/beatmaps/" + set_id + "/covers/cover.jpg?");
 
             if(status.equals("ranked")) {

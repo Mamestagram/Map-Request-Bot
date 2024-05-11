@@ -41,7 +41,7 @@ public abstract class Modal {
     }
 
     public  static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestAcceptModal(String custom_id) {
-        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", false, TextInputStyle.PARAGRAPH);
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter your comment", true, TextInputStyle.PARAGRAPH);
 
         return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Request accept")
                 .addActionRows(
@@ -50,7 +50,7 @@ public abstract class Modal {
     }
 
     public  static net.dv8tion.jda.api.interactions.modals.Modal getMapRequestRejectModal(String custom_id) {
-        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Comment", "Enter the comment", false, TextInputStyle.PARAGRAPH);
+        TextInput comment = org.example.Object.Modal.createTextInput("comment", "Reason", "Why???", true, TextInputStyle.PARAGRAPH);
 
         return net.dv8tion.jda.api.interactions.modals.Modal.create(custom_id, "Request reject")
                 .addActionRows(

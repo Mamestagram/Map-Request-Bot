@@ -1,6 +1,8 @@
 package org.example.Event;
 
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -29,6 +31,26 @@ public class NominateRequest extends ListenerAdapter {
         Pattern regex = Pattern.compile(pattern);
 
         return regex.matcher(url);
+    }
+
+    public static String getConvertMapEmoji(String m) {
+        switch (m) {
+            case "osu" -> {
+                return "<:osu:1100702517119168562>";
+            }
+            case "taiko" -> {
+                return "<:taiko:1100702510152429588>";
+            }
+            case "fruits" -> {
+                return "<:fruits:1100702512681599089>";
+            }
+            case "mania" -> {
+                return "<:mania:1100702514501910630>";
+            }
+            default -> {
+                return null;
+            }
+        }
     }
 
     @Override
@@ -67,20 +89,23 @@ public class NominateRequest extends ListenerAdapter {
                     String m;
                     String status;
                     String type;
+                    User requester;
                     String comment;
 
-                    if (args.length == 5) {
+                    if (args.length == 6) {
                         count = 1;
                         m = args[1];
                         status = args[2];
                         type = args[3];
-                        comment = args[4];
+                        requester = jda.getUserById(args[4]);
+                        comment = args[5];
                     } else {
                         count = 2;
                         m = args[2];
                         status = args[3];
                         type = args[4];
-                        comment = args[5];
+                        requester = jda.getUserById(args[5]);
+                        comment = args[6];
                     }
 
                     for (int i = 0; i < count; i++) {
@@ -92,13 +117,14 @@ public class NominateRequest extends ListenerAdapter {
                     result = ps.executeQuery();
                     if (result.next()) {
                         String filename = result.getString("artist") + " - " + result.getString("title") + " by " + result.getString("creator");
-                        e.getMessage().createThreadChannel("[" + status  + "] "  + filename)
-                                .queue(thread -> thread.sendMessage( "https://osu.ppy.sh/beatmapsets/" + arr[0] + "#" + m + "/" + arr[1])
+                        e.getMessage().createThreadChannel("[" + status + "] " + filename)
+                                .queue(thread -> thread.sendMessage("https://osu.ppy.sh/beatmapsets/" + arr[0] + "#" + m + "/" + arr[1])
                                         .setActionRow(
                                                 Button.success("btn_map_accept", "Accept"),
                                                 Button.danger("btn_map_reject", "Reject")
                                         ).queue());
-                        e.getMessage().replyEmbeds(Embed.getMapRequestReceivedMessage(result.getInt("set_id"), comment, filename, status, type, m).build()).queue();
+                        e.getMessage().replyEmbeds(Embed.getMapRequestReceivedMessage(requester, result.getInt("set_id"), comment, getConvertMapEmoji(m) + " " + filename, status, type, m).build()).queue();
+                        e.getMessage().addReaction(Emoji.fromFormatted("U+2753")).queue();
                     }
                 } catch (SQLException ex) {
                     System.out.println(ex);
@@ -126,41 +152,33 @@ public class NominateRequest extends ListenerAdapter {
                     .addActionRow(
                             Button.success("btn_ranked_mapset", "Mapset"),
                             Button.primary("btn_ranked_map", "Map")
-            ).setEphemeral(true).queue();
-        }
-        else if (e.getComponentId().equals("btn_unranked")) {
+                    ).setEphemeral(true).queue();
+        } else if (e.getComponentId().equals("btn_unranked")) {
             e.replyEmbeds(Embed.getMapRequestConfirmMessage().build())
                     .addActionRow(
                             Button.success("btn_unranked_mapset", "Mapset"),
                             Button.primary("btn_unranked_map", "Map")
                     ).setEphemeral(true).queue();
-        }
-        else if (e.getComponentId().equals("btn_ranked_mapset")) {
+        } else if (e.getComponentId().equals("btn_ranked_mapset")) {
             e.replyModal(Modal.getMapRequestModal("modal_ranked_mapset")).queue();
-        }
-        else if (e.getComponentId().equals("btn_ranked_map")) {
+        } else if (e.getComponentId().equals("btn_ranked_map")) {
             e.replyModal(Modal.getMapRequestModal("modal_ranked_map")).queue();
-        }
-        else if (e.getComponentId().equals("btn_unranked_mapset")) {
+        } else if (e.getComponentId().equals("btn_unranked_mapset")) {
             e.replyModal(Modal.getUnRankMapRequestModal("modal_unranked_mapset")).queue();
-        }
-        else if (e.getComponentId().equals("btn_unranked_map")) {
+        } else if (e.getComponentId().equals("btn_unranked_map")) {
             e.replyModal(Modal.getUnRankMapRequestModal("modal_unranked_map")).queue();
-        }
-        else if(e.getComponentId().equals("btn_map_accept")) {
-            e.reply("Your request has been accepted!").queue();
-        }
-        else if(e.getComponentId().equals("btn_map_reject")) {
-            e.reply("Your request has been rejected!").queue();
-        }
-        else {
+        } else if (e.getComponentId().equals("btn_map_accept")) {
+            e.replyModal(Modal.getMapRequestAcceptModal("modal_accept_request")).queue();
+        } else if (e.getComponentId().equals("btn_map_reject")) {
+            e.replyModal(Modal.getMapRequestRejectModal("modal_reject_request")).queue();
+        } else {
             e.reply("An unexpected error has occurred. Please try again.").queue();
         }
     }
 
     @Override
     public void onModalInteraction(ModalInteractionEvent e) {
-        if(e.getModalId().equals("modal_ranked_mapset") || e.getModalId().equals("modal_unranked_mapset") || e.getModalId().equals("modal_ranked_map") || e.getModalId().equals("modal_unranked_map")) {
+        if (e.getModalId().equals("modal_ranked_mapset") || e.getModalId().equals("modal_unranked_mapset") || e.getModalId().equals("modal_ranked_map") || e.getModalId().equals("modal_unranked_map")) {
 
             int set_id = 1, id = 1;
             String type = "osu,mapset";
@@ -189,7 +207,7 @@ public class NominateRequest extends ListenerAdapter {
                     } else {
                         type = matcher.group(2) + ",ranked";
                     }
-                    if(set_id < 0 || id < 0) {
+                    if (set_id < 0 || id < 0) {
                         e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect setID or ID format").build()).setEphemeral(true).queue();
                         return;
                     }
@@ -201,16 +219,16 @@ public class NominateRequest extends ListenerAdapter {
 
                         String comment;
 
-                        if(e.getValue("comment").getAsString().equals("")) {
-                                comment = "No comment";
+                        if (e.getValue("comment").getAsString().equals("")) {
+                            comment = "No comment";
                         } else {
                             comment = e.getValue("comment").getAsString();
                         }
 
                         if (e.getModalId().contains("mapset")) {
-                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + ","  + type + ",mapset," + comment).queue();
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + type + ",mapset," + e.getUser().getIdLong() + "," + comment).queue();
                         } else {
-                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + id + "," + type + ",map," + comment).queue();
+                            jda.getGuildById(setting.getGUILD_ID()).getTextChannelById(setting.getTESTER_CHANNEL_ID()).sendMessage(set_id + "," + id + "," + type + ",map," + e.getUser().getIdLong() + ","  + comment).queue();
                         }
                         e.replyEmbeds(Embed.getMapRequestCompleteMessage("Your request has been sent to the nominator.").build()).setEphemeral(true).queue();
                     } else {
@@ -222,15 +240,9 @@ public class NominateRequest extends ListenerAdapter {
             } else {
                 e.replyEmbeds(Embed.getMapRequestErrorMessage("Incorrect URL format").build()).setEphemeral(true).queue();
             }
-        }
-    }
+        } else if (e.getModalId().equals("modal_accept_request") || e.getModalId().equals("modal_reject_request")) {
 
-    @Override
-    public void onChannelCreate(ChannelCreateEvent e) {
-        if (e.getChannelType().isThread()) {
-            if (e.getChannel().asThreadChannel().getOwner().getUser().isBot()) {
-
-            }
         }
     }
 }
+
